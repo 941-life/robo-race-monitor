@@ -24,8 +24,13 @@ const PORT = 8000;
 const t0 = Date.now();
 const elapsed = () => (Date.now() - t0) / 1000;
 
-// UTM ellipse track (same as dummy.py)
-const CX = 363000, CY = 4143000, RX = 50, RY = 30;
+// UTM-style slanted, gently curved parallel paths. This keeps the mock close to
+// real path data without collapsing P1/P2 into a toy horizontal demo.
+const X0 = 363000, Y0 = 4143000, TRACK_LEN = 120, LANE_SEP = 3.5;
+const PATH_POINTS = 200;
+const TRACK_SLOPE = 0.22;
+const NORMAL_X = -TRACK_SLOPE / Math.hypot(1, TRACK_SLOPE);
+const NORMAL_Y = 1 / Math.hypot(1, TRACK_SLOPE);
 
 // ── Session state ──────────────────────────────────────────────────────────
 let session = { recording: false, label: null, startedAt: null };
@@ -144,21 +149,47 @@ function scenario(t) {
 
 // ── Static data ────────────────────────────────────────────────────────────
 const globalPath1 = {
-  frame_id: "map", n: 200,
-  poses: Array.from({ length: 200 }, (_, i) => {
-    const th = (2 * Math.PI * i) / 200;
-    return { x: CX + RX * Math.cos(th), y: CY + RY * Math.sin(th) };
-  }),
+  frame_id: "map", n: PATH_POINTS,
+  poses: Array.from({ length: PATH_POINTS }, (_, i) =>
+    pathPoint((TRACK_LEN * i) / (PATH_POINTS - 1), 0)
+  ),
 };
 const globalPath2 = {
-  frame_id: "map", n: 200,
-  poses: globalPath1.poses.map((p) => ({ x: p.x, y: p.y + 3.5 })),
+  frame_id: "map", n: PATH_POINTS,
+  poses: Array.from({ length: PATH_POINTS }, (_, i) =>
+    pathPoint((TRACK_LEN * i) / (PATH_POINTS - 1), 1)
+  ),
 };
 
-function makeLocalPath(vx, vy, n = 50) {
+function pathCenter(progress) {
+  return {
+    x: X0 + progress,
+    y: Y0 + progress * TRACK_SLOPE + 1.5 * Math.sin(progress / 28),
+  };
+}
+
+function pathPoint(progress, laneIndex) {
+  const clamped = Math.max(0, Math.min(TRACK_LEN, progress));
+  const center = pathCenter(clamped);
+  const offset = laneIndex * LANE_SEP;
+  return {
+    x: center.x + NORMAL_X * offset,
+    y: center.y + NORMAL_Y * offset,
+  };
+}
+
+function pathHeading(progress) {
+  const a = pathCenter(Math.max(0, progress - 0.5));
+  const b = pathCenter(Math.min(TRACK_LEN, progress + 0.5));
+  return Math.atan2(b.y - a.y, b.x - a.x);
+}
+
+function makeLocalPath(progress, laneIndex, n = 50) {
   return {
     frame_id: "map", n,
-    poses: Array.from({ length: n }, (_, i) => ({ x: vx + i * 0.5, y: vy })),
+    poses: Array.from({ length: n }, (_, i) => ({
+      ...pathPoint(progress + i * 0.7, laneIndex),
+    })),
   };
 }
 
@@ -166,10 +197,9 @@ function makeLocalPath(vx, vy, n = 50) {
 setInterval(() => {
   const t = elapsed();
   const s = scenario(t);
-  const theta = (t * 0.05) % (2 * Math.PI);
-  const vx = CX + RX * Math.cos(theta);
-  const vy = CY + RY * Math.sin(theta);
-  const yaw = theta + Math.PI / 2;
+  const progress = ((t * 3) % TRACK_LEN);
+  const vehicle = pathPoint(progress, s.lane_change ? 1 : 0);
+  const yaw = pathHeading(progress);
 
   const tv = s.region === "go" ? 15 : s.region === "slow" ? 8 : 10;
   const noise = () => (Math.random() - 0.5) * 0.06;
@@ -180,7 +210,7 @@ setInterval(() => {
   broadcast("/current_vel_print",   "control", { data: tv + (Math.random() - 0.5) * 0.6 });
   broadcast("/curvature",           "control", { data: 0.05 * Math.sin(t * 0.5) });
   broadcast("/heading_error",       "control", { data: 0.02 * Math.sin(t * 0.9) });
-  broadcast("/gps_utm_odom",        "pose",    { x: vx, y: vy, yaw, frame_id: "map" });
+  broadcast("/gps_utm_odom",        "pose",    { x: vehicle.x, y: vehicle.y, yaw, frame_id: "map" });
 }, 33);
 
 // ── 10 Hz: decision + flags + obstacles ───────────────────────────────────
@@ -223,9 +253,9 @@ setInterval(() => {
 // ── 5 Hz: path status + local paths ───────────────────────────────────────
 setInterval(() => {
   const t = elapsed();
-  const theta = (t * 0.05) % (2 * Math.PI);
-  const vx = CX + RX * Math.cos(theta);
-  const vy = CY + RY * Math.sin(theta);
+  const s = scenario(t);
+  const progress = ((t * 3) % TRACK_LEN);
+  const laneIndex = s.lane_change ? 1 : 0;
 
   broadcast("/monitoring/gpp/path1_valid",           "path_status", { data: true });
   broadcast("/monitoring/gpp/path2_valid",           "path_status", { data: true });
@@ -238,10 +268,12 @@ setInterval(() => {
   broadcast("/monitoring/gpp/overlap_lock",          "path_status", { data: false });
   broadcast("/monitoring/gpp/overlap_separation",    "path_status", { data: 3.5 });
 
-  const lp = makeLocalPath(vx, vy);
-  broadcast("/local_path1",   "paths", lp);
-  broadcast("/local_path2",   "paths", lp);
-  broadcast("/selected_path", "paths", lp);
+  const lp1 = makeLocalPath(progress, 0);
+  const lp2 = makeLocalPath(progress, 1);
+  const selected = makeLocalPath(progress, laneIndex);
+  broadcast("/local_path1",   "paths", lp1);
+  broadcast("/local_path2",   "paths", lp2);
+  broadcast("/selected_path", "paths", selected);
 }, 200);
 
 // ── Global paths — re-broadcast every 5s (latched simulation) ─────────────

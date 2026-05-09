@@ -6,7 +6,7 @@ type Point = { x: number | null; y: number | null; z?: number | null };
 const ROLE_COLORS: Record<string, string> = {
   LEAD:  "bg-[#e22718]/20 text-[#e22718] border border-[#e22718]/50",
   front: "bg-[#e22718]/20 text-[#e22718] border border-[#e22718]/50",
-  side:  "bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/50",
+  side:  "bg-[#f4b400]/20 text-[#f4b400] border border-[#f4b400]/50",
 };
 
 function RoleChip({ role }: { role: string | null }) {
@@ -81,7 +81,7 @@ export default function ObstaclePanel() {
   return (
     <div className="bg-[#262e38] border border-white/10 flex flex-col overflow-hidden shrink-0">
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-white/10">
-        <span className="w-0.5 h-4 bg-[#f59e0b] shrink-0" />
+        <span className="w-0.5 h-4 bg-[#f4b400] shrink-0" />
         <span className="text-[13px] font-bold uppercase tracking-[1.5px] text-white">
           Obstacles
         </span>

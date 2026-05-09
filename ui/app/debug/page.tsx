@@ -89,8 +89,8 @@ export default function DebugPage() {
           </span>
           <span
             className={`ml-auto text-xs font-bold uppercase tracking-widest ${
-              status === "connected" ? "text-[#22c55e]" :
-              status === "connecting" ? "text-[#f59e0b]" : "text-[#e22718]"
+              status === "connected" ? "text-[#0fa336]" :
+              status === "connecting" ? "text-[#f4b400]" : "text-[#e22718]"
             }`}
           >
             {status}

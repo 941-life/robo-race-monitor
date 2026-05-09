@@ -5,10 +5,10 @@ type FlagColor = "red" | "orange" | "yellow" | "blue" | "teal";
 
 const COLOR_ON: Record<FlagColor, { bg: string; dot: string }> = {
   red:    { bg: "bg-[#e22718]/15 border-[#e22718] text-[#e22718]", dot: "bg-[#e22718]" },
-  orange: { bg: "bg-[#f97316]/15 border-[#f97316] text-[#f97316]", dot: "bg-[#f97316]" },
-  yellow: { bg: "bg-[#f59e0b]/15 border-[#f59e0b] text-[#f59e0b]", dot: "bg-[#f59e0b]" },
+  orange: { bg: "bg-[#f4b400]/15 border-[#f4b400] text-[#f4b400]", dot: "bg-[#f4b400]" },
+  yellow: { bg: "bg-[#f4b400]/15 border-[#f4b400] text-[#f4b400]", dot: "bg-[#f4b400]" },
   blue:   { bg: "bg-[#1c69d4]/15 border-[#1c69d4] text-[#1c69d4]", dot: "bg-[#1c69d4]" },
-  teal:   { bg: "bg-[#06b6d4]/15 border-[#06b6d4] text-[#06b6d4]", dot: "bg-[#06b6d4]" },
+  teal:   { bg: "bg-[#0653b6]/15 border-[#0653b6] text-[#bbbbbb]", dot: "bg-[#0653b6]" },
 };
 
 function FlagBadge({
@@ -57,7 +57,7 @@ export default function FlagGrid() {
         </span>
       </div>
       <div className="grid grid-cols-2 gap-1 p-2">
-        <FlagBadge label="CAM STOP"    active={cameraStop} color="red"    />
+        <FlagBadge label="CAM STOP"    active={cameraStop} color="orange" />
         <FlagBadge label="FRONT OBS"   active={frontObs}   color="orange" />
         <FlagBadge label="SIDE OBS"    active={sideObs}    color="yellow" />
         <FlagBadge label="LANE CHG"    active={laneChange} color="blue"   />
