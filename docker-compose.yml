@@ -1,0 +1,24 @@
+services:
+  gateway:
+    build: .
+    network_mode: host
+    environment:
+      - ROS_MASTER_URI=${ROS_MASTER_URI:-http://192.168.1.10:11311}
+      - ROS_IP=${ROS_IP:-192.168.1.42}
+    volumes:
+      - ./recordings:/data/recordings
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    restart: unless-stopped
+    depends_on:
+      - gateway
+
+volumes:
+  caddy_data:
+
