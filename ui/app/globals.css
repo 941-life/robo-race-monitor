@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap");
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* BMW dark surfaces */
+  --color-surface: #1a2129;
+  --color-surface-elevated: #262e38;
+  --color-surface-card: #1d2530;
+
+  /* BMW blue */
+  --color-primary: #1c69d4;
+  --color-primary-active: #0653b6;
+
+  /* M accent */
+  --color-danger: #e22718;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  /* Text on dark */
+  --color-text: #ffffff;
+  --color-text-soft: #bbbbbb;
+  --color-text-muted: #6b6b6b;
+
+  /* BMW canvas (used sparingly) */
+  --color-canvas: #ffffff;
+  --color-ink: #262626;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #1a2129;
+  color: #ffffff;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  border-radius: 0;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #1a2129;
+}
+::-webkit-scrollbar-thumb {
+  background: #262e38;
+}

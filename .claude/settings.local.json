@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"c:\\\\Users\\\\truzw\\\\OneDrive\\\\바탕 화면\\\\monitoring\\\\ui\"; $env:NEXT_TURBOPACK = \"0\"; npm run build 2>&1 | Select-Object -Last 50)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
