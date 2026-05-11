@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "postbuild": "node scripts/ensure-vercel-routes-manifest.mjs",
     "start": "next start",
     "mock": "node tools/mock-ws-server.mjs"
   },
