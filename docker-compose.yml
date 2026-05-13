@@ -9,6 +9,7 @@ services:
       GATEWAY_HOST: ${GATEWAY_HOST:-0.0.0.0}
       GATEWAY_PORT: ${GATEWAY_PORT:-8000}
       GATEWAY_TOKEN: ${GATEWAY_TOKEN:-}
+      RECORDINGS_DIR: /data/recordings
     volumes:
       - ./recordings:/data/recordings
     restart: unless-stopped

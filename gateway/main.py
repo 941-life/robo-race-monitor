@@ -15,7 +15,7 @@ from .ros_node import RosNode
 from .ws_manager import WSManager
 
 ws_manager = WSManager()
-recorder = Recorder(base_dir="/data/recordings")
+recorder = Recorder(base_dir=os.getenv("RECORDINGS_DIR", "./recordings"))
 ros_node: Optional[RosNode] = None
 gateway_token = os.getenv("GATEWAY_TOKEN", "").strip()
 
