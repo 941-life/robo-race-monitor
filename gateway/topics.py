@@ -26,6 +26,11 @@ TOPIC_CATALOG = [
     ("/monitoring/gpp/estop_decision", String, "decision", 10),
     ("/monitoring/gpp/current_path", Int32, "decision", 10),
     ("/monitoring/gpp/selected_path", Int32, "decision", 10),
+    # Config metadata displayed in Path Status.
+    ("/monitoring/gpp/path1_file", String, "config", 2),
+    ("/monitoring/gpp/path2_file", String, "config", 2),
+    ("/monitoring/gpp/region_id", String, "config", 2),
+    ("/monitoring/gpp/frame_id", String, "config", 2),
     # Flags
     ("/monitoring/gpp/front_obstacle", Bool, "flags", 10),
     ("/monitoring/gpp/side_obstacle", Bool, "flags", 10),
@@ -69,4 +74,3 @@ CSV_FILES = {
     "path_status": "path_status.csv",
     "pose": "pose.csv",
 }
-

@@ -2,7 +2,7 @@
 
 import threading
 import time
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import cv2
 import rospy
@@ -21,6 +21,17 @@ class RosNode:
         self.bridge = CvBridge()
         self.subscribers: List[Any] = []
         self.thread: Optional[threading.Thread] = None
+        self.stats_lock = threading.Lock()
+        self.topic_stats: Dict[str, Dict[str, Any]] = {
+            topic: {
+                "topic": topic,
+                "type": msg_cls._type,
+                "category": category,
+                "count": 0,
+                "last_seen": None,
+            }
+            for topic, msg_cls, category, _hz in TOPIC_CATALOG
+        }
 
     def start(self) -> None:
         if self.thread and self.thread.is_alive():
@@ -41,6 +52,31 @@ class RosNode:
         rospy.loginfo("robo_monitor_gateway subscribed to %d topics", len(self.subscribers))
         rospy.spin()
 
+    def snapshot(self) -> Dict[str, Any]:
+        with self.stats_lock:
+            topics = [
+                {
+                    **stat,
+                    "age_sec": None
+                    if stat["last_seen"] is None
+                    else max(0.0, time.time() - stat["last_seen"]),
+                }
+                for stat in self.topic_stats.values()
+            ]
+
+        return {
+            "subscribed": len(self.subscribers),
+            "topics": topics,
+        }
+
+    def _mark_seen(self, topic: str) -> None:
+        with self.stats_lock:
+            stat = self.topic_stats.get(topic)
+            if stat is None:
+                return
+            stat["count"] += 1
+            stat["last_seen"] = time.time()
+
     def _make_callback(
         self,
         topic: str,
@@ -52,6 +88,8 @@ class RosNode:
             return self._make_camera_callback(topic, hz)
 
         def callback(msg: Any) -> None:
+            self._mark_seen(topic)
+
             try:
                 self.recorder.write(topic, type_name, category, msg)
             except Exception as exc:
@@ -78,6 +116,8 @@ class RosNode:
 
     def _make_camera_callback(self, topic: str, hz: float) -> Callable[[Any], None]:
         def callback(msg: Any) -> None:
+            self._mark_seen(topic)
+
             if not self.throttle.allow(topic, hz):
                 return
 

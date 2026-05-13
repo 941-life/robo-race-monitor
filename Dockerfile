@@ -14,5 +14,4 @@ COPY gateway/ gateway/
 
 EXPOSE 8000
 
-CMD ["bash", "-c", "source /opt/ros/noetic/setup.bash && uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --ws-ping-interval 20"]
-
+CMD ["bash", "-c", "source /opt/ros/noetic/setup.bash && uvicorn gateway.main:app --host ${GATEWAY_HOST:-127.0.0.1} --port ${GATEWAY_PORT:-8000} --ws-ping-interval 20"]
