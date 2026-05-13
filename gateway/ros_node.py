@@ -5,8 +5,8 @@ import time
 from typing import Any, Callable, Dict, List, Optional
 
 import cv2
+import numpy as np
 import rospy
-from cv_bridge import CvBridge
 
 from .encoders import encode
 from .throttle import HzThrottle
@@ -18,7 +18,6 @@ class RosNode:
         self.ws = ws_manager
         self.recorder = recorder
         self.throttle = HzThrottle()
-        self.bridge = CvBridge()
         self.subscribers: List[Any] = []
         self.thread: Optional[threading.Thread] = None
         self.stats_lock = threading.Lock()
@@ -122,7 +121,7 @@ class RosNode:
                 return
 
             try:
-                cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+                cv_image = image_msg_to_bgr(msg)
                 ok, buffer = cv2.imencode(
                     ".jpg",
                     cv_image,
@@ -135,3 +134,32 @@ class RosNode:
                 rospy.logwarn_throttle(5.0, "camera callback failed for %s: %s", topic, exc)
 
         return callback
+
+
+def image_msg_to_bgr(msg: Any) -> Any:
+    """Convert common sensor_msgs/Image encodings to an OpenCV BGR image."""
+    encoding = msg.encoding.lower()
+    height = int(msg.height)
+    width = int(msg.width)
+    step = int(msg.step)
+    raw = np.frombuffer(msg.data, dtype=np.uint8)
+
+    if encoding in ("bgr8", "rgb8"):
+        image = raw.reshape((height, step // 3, 3))[:, :width, :]
+        if encoding == "rgb8":
+            return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        return image
+
+    if encoding in ("bgra8", "rgba8"):
+        image = raw.reshape((height, step // 4, 4))[:, :width, :]
+        code = cv2.COLOR_RGBA2BGR if encoding == "rgba8" else cv2.COLOR_BGRA2BGR
+        return cv2.cvtColor(image, code)
+
+    if encoding in ("mono8", "8uc1"):
+        image = raw.reshape((height, step))[:, :width]
+        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    if encoding == "8uc3":
+        return raw.reshape((height, step // 3, 3))[:, :width, :]
+
+    raise ValueError(f"Unsupported camera encoding: {msg.encoding}")

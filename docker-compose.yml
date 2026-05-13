@@ -1,11 +1,12 @@
 services:
   gateway:
     build: .
-    network_mode: host
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
       ROS_MASTER_URI: ${ROS_MASTER_URI}
       ROS_IP: ${ROS_IP}
-      GATEWAY_HOST: ${GATEWAY_HOST:-127.0.0.1}
+      GATEWAY_HOST: ${GATEWAY_HOST:-0.0.0.0}
       GATEWAY_PORT: ${GATEWAY_PORT:-8000}
       GATEWAY_TOKEN: ${GATEWAY_TOKEN:-}
     volumes:
