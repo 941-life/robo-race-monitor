@@ -2,43 +2,42 @@
 import { create } from "zustand";
 import { config } from "@/lib/config";
 
-const FALLBACK_GATEWAY = "wss://localhost:8443";
+const FALLBACK_GATEWAY = "http://127.0.0.1:8000";
 
 function getInitialGateway(): string {
-  // 1. Env var (set in .env.local for local dev, or Vercel env)
-  if (config.apiUrl) return config.apiUrl;
-  // 2. User-saved value in localStorage
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("gatewayUrl") ?? FALLBACK_GATEWAY;
-  }
-  return FALLBACK_GATEWAY;
+  return config.apiUrl || FALLBACK_GATEWAY;
 }
 
 type SettingsState = {
   gatewayUrl: string;
   wsUrl: string;
   camUrl: string;
-  setGatewayUrl: (url: string) => void;
+  gatewayToken: string;
 };
 
-function deriveUrls(base: string) {
+function withToken(url: string, token: string) {
+  if (!token) return url;
+  const u = new URL(url);
+  u.searchParams.set("token", token);
+  return u.toString();
+}
+
+function deriveUrls(base: string, token: string) {
   // Normalise base to ws:// scheme before appending paths
   const wsBase = base.replace(/^https?:\/\//, (m) =>
     m.startsWith("https") ? "wss://" : "ws://"
   );
-  const wsUrl  = config.wsUrl  || `${wsBase}/ws`;
-  const camUrl = config.camUrl || `${wsBase}/ws/camera`;
+  const wsUrl  = withToken(config.wsUrl  || `${wsBase}/ws`, token);
+  const camUrl = withToken(config.camUrl || `${wsBase}/ws/camera`, token);
   return { wsUrl, camUrl };
 }
 
-export const useSettingsStore = create<SettingsState>((set) => {
+export const useSettingsStore = create<SettingsState>(() => {
   const initial = getInitialGateway();
+  const token = config.gatewayToken;
   return {
     gatewayUrl: initial,
-    ...deriveUrls(initial),
-    setGatewayUrl: (url: string) => {
-      if (typeof window !== "undefined") localStorage.setItem("gatewayUrl", url);
-      set({ gatewayUrl: url, ...deriveUrls(url) });
-    },
+    gatewayToken: token,
+    ...deriveUrls(initial, token),
   };
 });
