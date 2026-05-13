@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Optional
 import cv2
 import numpy as np
 import rospy
+import rosgraph
 
 from .encoders import encode
 from .throttle import HzThrottle
@@ -52,10 +53,12 @@ class RosNode:
         rospy.spin()
 
     def snapshot(self) -> Dict[str, Any]:
+        published_topics = get_published_topics()
         with self.stats_lock:
             topics = [
                 {
                     **stat,
+                    "published": stat["topic"] in published_topics,
                     "age_sec": None
                     if stat["last_seen"] is None
                     else max(0.0, time.time() - stat["last_seen"]),
@@ -163,3 +166,11 @@ def image_msg_to_bgr(msg: Any) -> Any:
         return raw.reshape((height, step // 3, 3))[:, :width, :]
 
     raise ValueError(f"Unsupported camera encoding: {msg.encoding}")
+
+
+def get_published_topics() -> set:
+    try:
+        master = rosgraph.Master("/robo_monitor_gateway")
+        return {topic for topic, _type_name in master.getPublishedTopics("")}
+    except Exception:
+        return set()
