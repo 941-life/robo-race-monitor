@@ -47,18 +47,19 @@ function StatusChip({
 }) {
   const cls = value ? (styleMap[value] ?? "text-[#bbbbbb] border border-white/20") : "";
   const pulse = value && pulseOn && value === pulseOn ? " animate-pulse" : "";
+
   return (
-    <div className="flex flex-col items-center gap-0.5 min-w-[90px]">
-      <span className="text-[9px] font-bold uppercase tracking-[2px] text-[#6b6b6b] leading-none">
+    <div className="flex min-w-[72px] flex-1 flex-col items-center gap-0.5 sm:min-w-[90px] sm:flex-none">
+      <span className="text-[8px] font-bold uppercase leading-none tracking-[1.4px] text-[#6b6b6b] sm:text-[9px] sm:tracking-[2px]">
         {chipLabel}
       </span>
       {value ? (
-        <span className={`px-3 py-1 text-[11px] font-bold uppercase tracking-[1px]${pulse} ${cls}`}>
+        <span className={`max-w-full truncate px-2 py-1 text-[10px] font-bold uppercase tracking-[0.8px] sm:px-3 sm:text-[11px] sm:tracking-[1px]${pulse} ${cls}`}>
           {value}
         </span>
       ) : (
-        <span className="px-3 py-1 text-[11px] font-bold tracking-[1px] text-white/20 border border-white/10">
-          —
+        <span className="border border-white/10 px-2 py-1 text-[10px] font-bold tracking-[1px] text-white/20 sm:px-3 sm:text-[11px]">
+          ??
         </span>
       )}
     </div>
@@ -76,11 +77,11 @@ function DecisionArea() {
   const decision = dec1    ?? dec2;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex w-full items-center gap-1.5 sm:w-auto sm:gap-3">
       <StatusChip chipLabel="Region"   value={region}   styleMap={REGION_STYLE} />
-      <span className="w-px h-6 bg-white/10 shrink-0" />
+      <span className="hidden h-6 w-px shrink-0 bg-white/10 sm:block" />
       <StatusChip chipLabel="Judgment" value={estop}    styleMap={JUDGMENT_STYLE} pulseOn="em" />
-      <span className="w-px h-6 bg-white/10 shrink-0" />
+      <span className="hidden h-6 w-px shrink-0 bg-white/10 sm:block" />
       <StatusChip chipLabel="Decision" value={decision} styleMap={DECISION_STYLE} pulseOn="stop" />
     </div>
   );
@@ -104,8 +105,8 @@ function EmergencyBanner() {
   if (!alertText) return null;
 
   return (
-    <div className="w-full flex items-center justify-center py-1.5 bg-[#e22718] animate-pulse">
-      <span className="text-[11px] font-bold uppercase tracking-[2px] text-white">
+    <div className="flex w-full items-center justify-center bg-[#e22718] py-1.5 animate-pulse">
+      <span className="px-2 text-center text-[11px] font-bold uppercase tracking-[2px] text-white">
         {alertText}
       </span>
     </div>
@@ -120,8 +121,8 @@ function SessionIndicator() {
   const ss = String(elapsed % 60).padStart(2, "0");
   return (
     <div className="flex items-center gap-1.5">
-      <span className="w-2 h-2 rounded-full bg-[#e22718] animate-pulse" />
-      <span className="text-xs font-bold uppercase tracking-[1.5px] text-[#e22718] font-mono">
+      <span className="h-2 w-2 rounded-full bg-[#e22718] animate-pulse" />
+      <span className="font-mono text-xs font-bold uppercase tracking-[1.5px] text-[#e22718]">
         REC {mm}:{ss}
       </span>
     </div>
@@ -149,40 +150,39 @@ export default function TopBar() {
   }, [sess.recording, sess.elapsed_sec]); // eslint-disable-line
 
   return (
-    <header className="shrink-0 flex flex-col border-b border-white/10 bg-[#1a2129] z-50">
+    <header className="z-50 flex shrink-0 flex-col border-b border-white/10 bg-[#1a2129]">
       <EmergencyBanner />
-      <div className="h-14 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 gap-4">
+      <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 lg:h-14 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4 lg:px-4 lg:py-0">
         <div className="min-w-0 flex items-center gap-4 justify-self-start">
-          {/* Logo */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <div className="flex gap-0.5">
-              <span className="w-1.5 h-6 bg-[#0066b1]" />
-              <span className="w-1.5 h-6 bg-[#1c69d4]" />
-              <span className="w-1.5 h-6 bg-[#e22718]" />
+              <span className="h-5 w-1 bg-[#0066b1] sm:h-6 sm:w-1.5" />
+              <span className="h-5 w-1 bg-[#1c69d4] sm:h-6 sm:w-1.5" />
+              <span className="h-5 w-1 bg-[#e22718] sm:h-6 sm:w-1.5" />
             </div>
-            <span className="text-[13px] font-bold uppercase tracking-[1.5px] text-white">
+            <span className="text-[12px] font-bold uppercase tracking-[1.2px] text-white sm:text-[13px] sm:tracking-[1.5px]">
               GADIS Monitor
             </span>
           </div>
 
-          {/* WS status */}
-          <div className="flex items-center gap-2 shrink-0 border-l border-white/10 pl-4">
-            <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-            <span className="text-xs font-bold uppercase tracking-widest text-[#bbbbbb]">
+          <div className="flex shrink-0 items-center gap-2 border-l border-white/10 pl-3 sm:pl-4">
+            <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#bbbbbb] sm:text-xs">
               {cfg.label}
             </span>
           </div>
         </div>
 
-        {/* Decision chips */}
-        <div className="justify-self-center">
+        <div className="hidden justify-self-center lg:block">
           <DecisionArea />
         </div>
 
-        {/* Session REC */}
         <div className="min-w-0 flex items-center gap-4 justify-self-end">
           <SessionIndicator />
         </div>
+      </div>
+      <div className="border-t border-white/10 px-2 py-2 lg:hidden">
+        <DecisionArea />
       </div>
     </header>
   );
